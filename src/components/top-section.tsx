@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {addDepartments} from "@/clients/apiClient"
+import {addDepartments} from "@/clients/api-client"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import React, {useState } from 'react';

@@ -5,15 +5,14 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {addDepartments} from "@/clients/apiClient"
-import { Input } from "@/components/ui/input"
+import {deleteDepartment} from "@/clients/api-client"
 import { Label } from "@/components/ui/label"
 import React, {useState } from 'react';
 import { useForm } from "@tanstack/react-form"
 import { useQueryClient } from '@tanstack/react-query';
 
 
-function EditDepartment(name : string)
+function DeleteDepartment( {id} :{id : number})
 { const [success, setSuccess] = useState(false)
     const queryClient = useQueryClient()
     const form = useForm({
@@ -22,21 +21,21 @@ function EditDepartment(name : string)
     },
     onSubmit: async (values) => {
         try{
-            await addDepartments(values.value.department_name)
+            await deleteDepartment(id)
              setSuccess(true)        
             setTimeout(() => setSuccess(false), 3000)
             form.reset();
             queryClient.invalidateQueries({ queryKey: ['departments'] });
         }catch(err:any)
         {
-            console.log("error to add Dep: " + err)
+            console.log("error to delete Dep: " + err)
         }
     },
     })
     return (
         <Dialog>
         <DialogTrigger asChild>
-        <Button variant="outline" className="cursor-pointer">Edit Department</Button>
+        <Button variant="outline" className="cursor-pointer">Delete Department</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
         <DialogTitle></DialogTitle>
@@ -44,17 +43,16 @@ function EditDepartment(name : string)
                 name="department_name"
                 children={(field) => (
                     <>
-                    <Label htmlFor="department_name">Department Name</Label>
-                    <Input id="department_name" type="text" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />
+                    <Label htmlFor="department_name">Are you sure?</Label>
                     </>
                 )}
                 />
                 <Button type="submit" onClick={form.handleSubmit}>
-                Submit
+                Yes
                 </Button>
-                {success && <p className="text-[#423]">Department added successfully!</p>}
+                {success && <p className="text-[#423]">Department Deleted successfully!</p>}
         </DialogContent>
     </Dialog>
     )
 }
-export default EditDepartment
+export default DeleteDepartment

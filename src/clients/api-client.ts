@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
-import {GetDepartmentDto} from "@/clients/Departments/getDepartmentDto"
-import { GetItemDto } from './Items/GetItemsDto';
+import { GetItemDto } from './items/get-items-dto';
+import { GetDepartmentDto } from './departments/get-department-dto';
 
 export const BASE_URL = 'https://localhost:7078';
 
@@ -26,8 +26,29 @@ async function addDepartments(name: string) {
     return response.data;
 }
 
+async function updateDepartment(id : number, name: string) {
+    const response: AxiosResponse = await api.put(`/api/Department/${id}`, {name});
+    return response.data;
+}
+
+async function deleteDepartment(id : number) {
+    const response: AxiosResponse = await api.delete(`/api/Department/${id}`);
+    return response.data;
+}
+
+async function addItem(departmentId: number, name: string, price: number) {
+    const response: AxiosResponse = await api.post(`/api/Department/${departmentId}/items`, {
+        name,
+        price
+    });
+    return response.data;
+}
+
 export {
   getAllDepartments,
   getItemsByDepId,
-  addDepartments
+  addDepartments,
+  updateDepartment,
+  deleteDepartment,
+  addItem
 };

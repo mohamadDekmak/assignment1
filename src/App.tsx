@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
-import TopSection from "./components/TopSection"
-import LeftSection from './components/LeftSection'
+import TopSection from "./components/top-section"
+import LeftSection from './components/left-section'
 
 function App() {
   const [count, setCount] = useState(0)

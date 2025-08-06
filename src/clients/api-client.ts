@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { GetItemDto } from './items/get-items-dto';
 import { GetDepartmentDto } from './departments/get-department-dto';
 
-export const BASE_URL = 'https://localhost:7078';
+export const BASE_URL = 'http://localhost:5099';
 
 const api = axios.create({
   baseURL: BASE_URL,

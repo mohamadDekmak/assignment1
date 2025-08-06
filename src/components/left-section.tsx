@@ -17,18 +17,19 @@ const {
   queryFn: getAllDepartments,
 });
 
-// Use React Query for items fetching too
 const {
   data: items = [],
   error: itemsError,
   isLoading: itemsLoading,
 } = useQuery<GetItemDto[], Error>({
   queryKey: ['items', activeDepId],
-  queryFn: () => getItemsByDepId(activeDepId!),
-  enabled: activeDepId !== null,
+  queryFn: async () => {
+    if (!activeDepId) throw new Error('Department ID is required');
+    const response = await getItemsByDepId(activeDepId);
+    return response.items || [];
+  },
 });
 
-// Update selected department when activeDepId or departments change
 useEffect(() => {
   if (activeDepId !== null && departments) {
     const department = departments.find(dept => dept.id === activeDepId);

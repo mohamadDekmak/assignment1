@@ -1,19 +1,26 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { GetDepartmentDto } from '@/clients/departments/get-department-dto';
-import { GetItemDto } from '@/clients/items/get-items-dto';
-import { getAllDepartments, getItemsByDepId } from '@/clients/api-client';
+import { GetItemDto, PaginatedItemsResponse } from '@/clients/items/get-items-dto';
+import { getAllDepartments, getItemsByDepIdPaginated } from '@/clients/api-client';
 
 interface AppContextType {
   departments: GetDepartmentDto[] | undefined;
   selectedDepartment: GetDepartmentDto | null;
   activeDepId: number | null;
   items: GetItemDto[];
+  paginatedItems: PaginatedItemsResponse | undefined;
   isLoadingItems: boolean;
   isDepartmentsLoading: boolean;
   departmentsError: Error | null;
   itemsError: Error | null;
+  currentPage: number;
+  pageSize: number;
+  searchQuery: string;
   setActiveDepId: (id: number | null) => void;
+  setCurrentPage: (page: number) => void;
+  setPageSize: (size: number) => void;
+  setSearchQuery: (query: string) => void;
   invalidateDepartments: () => void;
   invalidateItems: () => void;
 }
@@ -26,7 +33,14 @@ interface AppProviderProps {
 export function AppProvider({ children }: AppProviderProps) {
   const [activeDepId, setActiveDepId] = useState<number | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<GetDepartmentDto | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
+  
+  const prevActiveDepId = useRef(activeDepId);
+  const prevSearchQuery = useRef(searchQuery);
+
   const {
     data: departments,
     error: departmentsError,
@@ -35,19 +49,22 @@ export function AppProvider({ children }: AppProviderProps) {
     queryKey: ['departments'],
     queryFn: getAllDepartments,
   });
+
   const {
-    data: items = [],
+    data: paginatedItems,
     error: itemsError,
     isLoading: isLoadingItems,
-  } = useQuery<GetItemDto[], Error>({
-    queryKey: ['items', activeDepId],
+  } = useQuery<PaginatedItemsResponse, Error>({
+    queryKey: ['items', activeDepId, currentPage, pageSize, searchQuery],
     queryFn: async () => {
-      if (!activeDepId) return [];
-      const response = await getItemsByDepId(activeDepId);
-      return Array.isArray(response) ? response : response.items || [];
+      if (!activeDepId) return { items: [], totalCount: 0, pageNumber: 1, pageSize: 10, totalPages: 0 };
+      return await getItemsByDepIdPaginated(activeDepId, currentPage, pageSize, searchQuery);
     },
     enabled: !!activeDepId,
   });
+
+
+  const items = paginatedItems?.items || [];
 
   useEffect(() => {
     if (activeDepId !== null && departments) {
@@ -57,6 +74,8 @@ export function AppProvider({ children }: AppProviderProps) {
       setSelectedDepartment(null);
     }
   }, [activeDepId, departments]);
+
+
   useEffect(() => {
     if (departments && departments.length > 0) {
       if (activeDepId === null) {
@@ -72,6 +91,20 @@ export function AppProvider({ children }: AppProviderProps) {
       setSelectedDepartment(null);
     }
   }, [departments, activeDepId]);
+
+  useEffect(() => {
+    if (prevActiveDepId.current !== null && prevActiveDepId.current !== activeDepId) {
+      setCurrentPage(1);
+    }
+    prevActiveDepId.current = activeDepId;
+  }, [activeDepId]);
+  
+  useEffect(() => {
+    if (prevSearchQuery.current !== searchQuery) {
+      setCurrentPage(1);
+    }
+    prevSearchQuery.current = searchQuery;
+  }, [searchQuery]);
   const invalidateDepartments = () => {
     queryClient.invalidateQueries({ queryKey: ['departments'] });
   };
@@ -87,11 +120,18 @@ export function AppProvider({ children }: AppProviderProps) {
     selectedDepartment,
     activeDepId,
     items,
+    paginatedItems,
     isLoadingItems,
     isDepartmentsLoading,
     departmentsError,
     itemsError,
+    currentPage,
+    pageSize,
+    searchQuery,
     setActiveDepId,
+    setCurrentPage,
+    setPageSize,
+    setSearchQuery,
     invalidateDepartments,
     invalidateItems,
   };

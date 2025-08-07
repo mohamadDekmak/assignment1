@@ -20,6 +20,8 @@ interface AddItemProps {
 function AddItem({departmentId, departmentName}: AddItemProps)
 { 
     const [success, setSuccess] = useState(false)
+    const [selectedImage, setSelectedImage] = useState<File | null>(null)
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
     const { invalidateItems } = useAppContext();
     const form = useForm({
     defaultValues: {
@@ -36,10 +38,12 @@ function AddItem({departmentId, departmentName}: AddItemProps)
             return;
         }
         try{
-            await addItem(departmentId, values.value.name.trim(), values.value.price)
+            await addItem(departmentId, values.value.name.trim(), values.value.price, selectedImage || undefined)
              setSuccess(true)
             setTimeout(() => setSuccess(false), 3000)
             form.reset();
+            setSelectedImage(null);
+            setImagePreview(null);
             invalidateItems();
         }catch(err:any)
         {
@@ -47,6 +51,21 @@ function AddItem({departmentId, departmentName}: AddItemProps)
         }
     },
     })
+    
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setSelectedImage(null);
+            setImagePreview(null);
+        }
+    };
     return (
         <Dialog>
         <DialogTrigger asChild>
@@ -87,6 +106,27 @@ function AddItem({departmentId, departmentName}: AddItemProps)
                         </>
                     )}
                     />
+                    
+                <div>
+                    <Label htmlFor="item_image" className="mb-4">Item Image (Optional)</Label>
+                    <Input 
+                        id="item_image" 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="cursor-pointer"
+                    />
+                    {imagePreview && (
+                        <div className="mt-2">
+                            <img 
+                                src={imagePreview} 
+                                alt="Preview" 
+                                className="w-24 h-24 object-cover rounded border"
+                            />
+                        </div>
+                    )}
+                </div>
+                
                     <Button type="submit" onClick={form.handleSubmit}>
                     Add Item
                     </Button>

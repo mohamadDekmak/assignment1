@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import React, {useState } from 'react';
 import { useForm } from "@tanstack/react-form"
-import { useQueryClient } from '@tanstack/react-query';
+import { useAppContext } from '@/contexts/AppContext';
 
 interface AddItemProps {
   departmentId: number;
@@ -20,14 +20,13 @@ interface AddItemProps {
 function AddItem({departmentId, departmentName}: AddItemProps)
 { 
     const [success, setSuccess] = useState(false)
-    const queryClient = useQueryClient()
+    const { invalidateItems } = useAppContext();
     const form = useForm({
     defaultValues: {
         name: '',
         price: 0,
     },
     onSubmit: async (values) => {
-        // Basic validation
         if (!values.value.name.trim()) {
             console.log("Item name is required");
             return;
@@ -36,16 +35,12 @@ function AddItem({departmentId, departmentName}: AddItemProps)
             console.log("Price must be greater than 0");
             return;
         }
-        
         try{
             await addItem(departmentId, values.value.name.trim(), values.value.price)
-             setSuccess(true)        
+             setSuccess(true)
             setTimeout(() => setSuccess(false), 3000)
             form.reset();
-            // Invalidate queries to refresh the items list and departments
-            queryClient.invalidateQueries({ queryKey: ['departments'] });
-            // Also trigger a refetch of items for this specific department
-            queryClient.invalidateQueries({ queryKey: ['items', departmentId] });
+            invalidateItems();
         }catch(err:any)
         {
             console.log("error to add Item: " + err)

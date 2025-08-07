@@ -10,13 +10,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import React, {useState } from 'react';
 import { useForm } from "@tanstack/react-form"
-import { useQueryClient } from '@tanstack/react-query';
+import { useAppContext } from '@/contexts/AppContext';
 
 
 function TopSection()
 {
     const [success, setSuccess] = useState(false)
-    const queryClient = useQueryClient()
+    const { invalidateDepartments } = useAppContext();
     const form = useForm({
     defaultValues: {
         department_name: '',
@@ -27,7 +27,7 @@ function TopSection()
              setSuccess(true)        
             setTimeout(() => setSuccess(false), 3000)
             form.reset();
-            queryClient.invalidateQueries({ queryKey: ['departments'] });
+            invalidateDepartments();
         }catch(err:any)
         {
             console.log("error to add Dep: " + err)
@@ -52,10 +52,10 @@ function TopSection()
                             </>
                         )}
                         />
-                        <Button type="submit" onClick={form.handleSubmit}>
+                        <Button type="submit" className="mb-5" onClick={form.handleSubmit}>
                         Submit
                         </Button>
-                        {success && <p className="text-[#423]">Department added successfully!</p>}
+                        {success && <p className="text-[#423] absolute bottom-3 w-full text-center">Department added successfully!</p>}
                 </DialogContent>
             </Dialog>
         </section>

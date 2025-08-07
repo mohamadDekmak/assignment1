@@ -9,23 +9,22 @@ import {deleteDepartment} from "@/clients/api-client"
 import { Label } from "@/components/ui/label"
 import React, {useState } from 'react';
 import { useForm } from "@tanstack/react-form"
-import { useQueryClient } from '@tanstack/react-query';
+import { useAppContext } from '@/contexts/AppContext';
 
 
 function DeleteDepartment( {id} :{id : number})
-{ const [success, setSuccess] = useState(false)
-    const queryClient = useQueryClient()
+{ 
+    const [success, setSuccess] = useState(false)
+    const { invalidateDepartments } = useAppContext();
     const form = useForm({
-    defaultValues: {
-        department_name: name,
-    },
-    onSubmit: async (values) => {
+    defaultValues: {},
+    onSubmit: async () => {
         try{
             await deleteDepartment(id)
              setSuccess(true)        
             setTimeout(() => setSuccess(false), 3000)
             form.reset();
-            queryClient.invalidateQueries({ queryKey: ['departments'] });
+            invalidateDepartments();
         }catch(err:any)
         {
             console.log("error to delete Dep: " + err)

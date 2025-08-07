@@ -118,6 +118,6 @@
     @apply bg-background text-foreground;
   }
 }
-body{
+/* body{
   @apply overflow-hidden
-}
+} */

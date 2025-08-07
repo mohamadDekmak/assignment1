@@ -1,16 +1,14 @@
-import { useState } from 'react'
 import './App.css'
 import TopSection from "./components/top-section"
 import LeftSection from './components/left-section'
+import { AppProvider } from './contexts/AppContext';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
+    <AppProvider>
       <TopSection/>
       <LeftSection/>
-    </>
+    </AppProvider>
   )
 }
 

@@ -1,62 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { getAllDepartments, getItemsByDepId } from '@/clients/api-client';
+import React from 'react';
 import ItemsList from './items-list';
-import { GetDepartmentDto } from "@/clients/departments/get-department-dto";
-import { GetItemDto } from '@/clients/items/get-items-dto';
-import { useQuery } from '@tanstack/react-query';
+import { useAppContext } from '@/contexts/AppContext';
 
 function LeftSection() {
-  const [activeDepId, setActiveDepId] = useState<number | null>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState<GetDepartmentDto | null>(null);
+  const {
+    departments,
+    selectedDepartment,
+    activeDepId,
+    items,
+    isLoadingItems,
+    isDepartmentsLoading,
+    departmentsError,
+    itemsError,
+    setActiveDepId,
+  } = useAppContext();
 
-const {
-  data: departments,
-  error: departmentsError,
-} = useQuery<GetDepartmentDto[], Error>({
-  queryKey: ['departments'],
-  queryFn: getAllDepartments,
-});
-
-const {
-  data: items = [],
-  error: itemsError,
-  isLoading: itemsLoading,
-} = useQuery<GetItemDto[], Error>({
-  queryKey: ['items', activeDepId],
-  queryFn: async () => {
-    if (!activeDepId) throw new Error('Department ID is required');
-    const response = await getItemsByDepId(activeDepId);
-    return response.items || [];
-  },
-});
-
-useEffect(() => {
-  if (activeDepId !== null && departments) {
-    const department = departments.find(dept => dept.id === activeDepId);
-    setSelectedDepartment(department || null);
-  } else {
-    setSelectedDepartment(null);
+  if (departmentsError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center p-4">
+          <p className="text-red-600 mb-2">Error loading departments</p>
+          <p className="text-sm text-gray-600">{departmentsError.message}</p>
+        </div>
+      </div>
+    );
   }
-}, [activeDepId, departments]);
 
-useEffect(() => {
-  if (departments && departments.length > 0) {
-    if (activeDepId === null) {
-      setActiveDepId(departments[0].id);
-    } else {
-      const currentDepartmentExists = departments.some(dept => dept.id === activeDepId);
-      if (!currentDepartmentExists) {
-        setActiveDepId(departments[0].id);
-      }
-    }
-  } else {
-    setActiveDepId(null);
-    setSelectedDepartment(null);
+  if (itemsError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center p-4">
+          <p className="text-red-600 mb-2">Error loading items</p>
+          <p className="text-sm text-gray-600">{itemsError.message}</p>
+        </div>
+      </div>
+    );
   }
-}, [departments, activeDepId]);
 
-  if (departmentsError) return <div>Error loading departments: {departmentsError.message}</div>;
-  if (itemsError) return <div>Error loading items: {itemsError.message}</div>;
+  if (isDepartmentsLoading) {
+    return (
+      <section className="flex">
+        <div className="border-r-[2px] h-screen w-[200px] flex items-center justify-center">
+          <p className="text-[#777d7d]">Loading departments...</p>
+        </div>
+        <div className="m-4 w-full flex items-center justify-center">
+          <p className="text-[#777d7d]">Loading...</p>
+        </div>
+      </section>
+    );
+  }
+
   if (!departments || departments.length === 0) {
     return (
       <section className="flex">
@@ -79,7 +72,7 @@ useEffect(() => {
   return (
     <section className="flex">
       <ul className="text-center border-r-[2px] h-screen w-[200px]">
-        {departments?.map((dept) => (
+        {departments.map((dept) => (
           <li
             onClick={() => setActiveDepId(dept.id)}
             key={dept.id}
@@ -87,13 +80,13 @@ useEffect(() => {
               activeDepId === dept.id
                 ? 'bg-[#e2f0ed] text-[#216037]'
                 : 'text-[#777d7d]'
-            } cursor-pointer py-2 font-[600]`}
+            } cursor-pointer py-2 font-[600] hover:bg-gray-100 transition-colors`}
           >
             {dept.name}
           </li>
         ))}
       </ul>
-      <ItemsList items={items} selectedDepartment={selectedDepartment} isLoading={itemsLoading} />
+      <ItemsList items={items} selectedDepartment={selectedDepartment} isLoading={isLoadingItems} />
     </section>
   );
 }

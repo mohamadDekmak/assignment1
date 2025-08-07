@@ -16,9 +16,9 @@ async function getAllDepartments(): Promise<GetDepartmentDto[]> {
     return response.data;
 }
 
- async function getItemsByDepId(depId: number): Promise<GetItemDto[]> {
-  const response : AxiosResponse<GetItemDto[]> = await api.get(`/api/Department/${depId}/items`);
-  return response.data;
+async function getItemsByDepId(depId: number): Promise<GetItemDto[]> {
+const response : AxiosResponse<GetItemDto[]> = await api.get(`/api/Department/${depId}/items`);
+return response.data;
 }
 
 async function addDepartments(name: string) {
